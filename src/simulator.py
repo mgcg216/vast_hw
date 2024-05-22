@@ -1,13 +1,15 @@
 import simpy
 import random
 
+
 class MiningUnloadStation:
     def __init__(self, env, number_of_stations):
         self.env = env
         self.stations = simpy.Resource(env, capacity=number_of_stations)
 
+
 class MiningTruck:
-    def __init__(self, env, name, unload_station):
+    def __init__(self, env, name, unload_station, debug=False):
         self.env = env
         self.name = name
         self.unload_station = unload_station
@@ -15,10 +17,14 @@ class MiningTruck:
         self.total_unload_time = 0
         self.action = env.process(self.run())
 
+        # For Testing
+        self.debug = debug
+        self.miningDuration = 1
+
     def run(self):
         while True:
             # Mine for 1-5 hours
-            mining_duration = random.randint(1, 5)
+            mining_duration = self.getMiningDuration()
             self.total_mining_time += mining_duration
             print(f'{self.name} starts mining at {self.env.now} for {mining_duration} hours')
             yield self.env.timeout(mining_duration * 60)  # convert hours to minutes
@@ -36,6 +42,16 @@ class MiningTruck:
                 print(f'{self.name} starts unloading at {self.env.now}')
                 yield self.env.timeout(unload_duration)
                 print(f'{self.name} finishes unloading at {self.env.now}')
+
+    def getMiningDuration(self, min=0, max=5):
+        if not self.debug:
+            return random.randint(min, max)
+        else:
+            return self.miningDuration
+
+    def setMiningDuration(self, value):
+        if 0 < value:
+            self.miningDuration = value
 
 class Simulator:
     def __init__(self, m, n):
