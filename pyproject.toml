@@ -3,11 +3,11 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "your_project_name"
+name = "vast_take_home_challenge_python"
 version = "0.1.0"
-description = "A brief description of your project"
+description = "Simulation for a lunar Helium-3 space mining operation. This simulation will manage and track the efficiency of mining trucks and unload stations over a continuous 72-hour operation."
 authors = [
-    { name = "Your Name", email = "your.email@example.com" }
+    { name = "Gerrard Guerrero", email = "mgcg216@gmail.com" }
 ]
 dependencies = []
 

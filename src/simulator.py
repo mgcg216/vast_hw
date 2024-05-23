@@ -53,26 +53,38 @@ class MiningTruck:
         if 0 < value:
             self.miningDuration = value
 
+
 class Simulator:
-    def __init__(self, m, n):
-        # Setup and start the simulation
-        print('Lunar Helium-3 mining operation simulation')
-        env = simpy.Environment()
-        number_of_unload_stations = m  # Define the number of unload stations
-        unload_station = MiningUnloadStation(env, number_of_unload_stations)  # Initialize the unload stations
+    def __init__(self, m, n, duration=4320, *, debug=False):
+        self.env = simpy.Environment()
+        self.number_of_unload_stations = m
+        self.number_of_trucks = n
+        self.simulation_duration = duration
 
-        # Create multiple mining trucks
-        number_of_trucks = n
-        trucks = [MiningTruck(env, f'Truck {i}', unload_station) for i in range(number_of_trucks)]
+        self.debug = debug
 
-        # Run the simulation for 72 hours (4320 minutes)
-        env.run(until=4320)
+    def setup(self):
+        self.unload_station = MiningUnloadStation(self.env, self.number_of_unload_stations)
+        self.trucks = [MiningTruck(self.env, f'Truck {i}', self.unload_station, debug=self.debug) for i in range(self.number_of_trucks)]
 
-        # Collect and print statistics
-        for truck in trucks:
+    def run(self):
+        self.env.run(until=self.simulation_duration)
+
+    def collect_statistics(self):
+        truck_stats = {}
+        for truck in self.trucks:
             print(f'{truck.name} mined for {truck.total_mining_time} hours and spent {truck.total_unload_time} minutes unloading.')
+            truck_stats[truck.name] = truck.total_unload_time
+        return truck_stats
+
+    def start(self):
+        print('Lunar Helium-3 mining operation simulation')
+        self.setup()
+        self.run()
+        return self.collect_statistics()
 
 
 if __name__ == "__main__":
-    Simulator(3, 5)
+    simulator = Simulator(3, 5)
+    simulator.start()
 
