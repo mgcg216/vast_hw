@@ -8,6 +8,8 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 class MiningUnloadStation:
     def __init__(self, env, number_of_stations):
+        if number_of_stations < 1:
+            raise ValueError("Number of unload stations must be at least 1")
         self.env = env
         self.stations = simpy.Resource(env, capacity=number_of_stations)
 
@@ -60,6 +62,8 @@ class Simulator:
     def __init__(self, m, n, duration=4320, *, debug=False):
         self.env = simpy.Environment()
         self.number_of_unload_stations = m
+        if 1 > n:
+            raise ValueError("Number of unload trucks must be at least 1")
         self.number_of_trucks = n
         self.simulation_duration = duration
 
@@ -81,6 +85,7 @@ class Simulator:
 
     def start(self):
         logging.info('Lunar Helium-3 mining operation simulation')
+        logging.info(f"Number of Trucks: {self.number_of_trucks} Number of Stations: {self.number_of_unload_stations}")
         self.setup()
         self.run()
         return self.collect_statistics()
