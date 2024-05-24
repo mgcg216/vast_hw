@@ -9,7 +9,10 @@ description = "Simulation for a lunar Helium-3 space mining operation. This simu
 authors = [
     { name = "Gerrard Guerrero", email = "mgcg216@gmail.com" }
 ]
-dependencies = []
+dependencies = [
+    "simpy>=4.0.1",  # Add the SimPy dependency
+    "pytest>=6.2"    # Add Pytest for testing
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
