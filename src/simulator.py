@@ -6,7 +6,7 @@ from typing import Dict
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Constants for max limits wasn't a requirement but made restrictions anyway
+# Constants for max limits
 MAX_TRUCKS = 1_000_000
 MAX_STATIONS = 1_000_000
 
@@ -18,7 +18,7 @@ class MiningUnloadStation:
         self.stations = simpy.Resource(env, capacity=number_of_stations)
 
 class MiningTruck:
-    def __init__(self, env: simpy.Environment, name: str, unload_station: MiningUnloadStation, debug: bool = False) -> None:
+    def __init__(self, env: simpy.Environment, name: str, unload_station: MiningUnloadStation, *, debug: bool = False) -> None:
         self.env = env
         self.name = name
         self.unload_station = unload_station
@@ -26,8 +26,10 @@ class MiningTruck:
         self.total_unload_time = 0
         self.action = env.process(self.run())
 
-        self.debug = debug
+        self._debug = debug
         self._miningDuration = 1
+        self._miningDruationMin = 1
+        self._miningDruationMax = 5
         self._travelDuration = 30
         self._unloadDuration = 5
 
@@ -54,9 +56,18 @@ class MiningTruck:
 
     # Getters and Setters
     @property
-    def mining_duration(self, min: int = 1, max: int = 5) -> int:
+    def debug(self):
+        return self._debug
+        
+    @debug.setter
+    def debug(self, status: bool):
+        self._debug = status
+
+
+    @property
+    def mining_duration(self) -> int:
         if not self.debug:
-            return random.randint(min, max)
+            return random.randint(self._miningDruationMin, self._miningDruationMax)
         else:
             return self._miningDuration
 
@@ -65,7 +76,7 @@ class MiningTruck:
         if 0 <= value:
             self._miningDuration = value
         else:
-            raise ValueError("Mining Duration must be greater than or equal0")
+            raise ValueError("Mining Duration must be greater than or equal to 0")
 
     @property
     def travel_duration(self):
@@ -76,7 +87,7 @@ class MiningTruck:
         if 0 <= value:
             self._travelDuration = value
         else:
-            raise ValueError("Travel Duration must be greater than or equal 0")
+            raise ValueError("Travel Duration must be greater than or equal to 0")
 
     @property
     def unload_duration(self):
@@ -87,11 +98,42 @@ class MiningTruck:
         if 0 <= value:
             self._unloadDuration = value
         else:
-            raise ValueError("Unload Duration must be greater than or equal 0")
+            raise ValueError("Unload Duration must be greater than or equal to 0")
 
+    def __str__(self):
+        return f"MiningTruck(id={self.name}, set_mining_duration={self._miningDuration}, set_travel_duration={self._travelDuration}, set_unload_duration={self._unloadDuration})"
+
+
+class MiningTruckBuilder:
+    def __init__(self, env: simpy.Environment, name: str, unload_station: MiningUnloadStation):
+        self._truck = MiningTruck(env, name, unload_station)
+
+    def set_mining_duration_random(self, min: int, max: int):
+        self._truck._miningDruationMin = min
+        self._truck._miningDruationMax = max
+        return self
+
+    def set_mining_duration(self, duration: int):
+        self._truck.mining_duration = duration
+        return self
+
+    def set_travel_duration(self, duration: int):
+        self._truck.travel_duration = duration
+        return self
+
+    def set_unload_duration(self, duration: int):
+        self._truck.unload_duration = duration
+        return self
+
+    def set_debug(self, status: bool):
+        self._truck.debug = status
+        return self
+
+    def build(self):
+        return self._truck
 
 class Simulator:
-    def __init__(self, m: int, n: int, duration: int = 3 * 24* 60, *, debug: bool = False) -> None:
+    def __init__(self, m: int, n: int, duration: int = 3 * 24 * 60, *, debug: bool = False) -> None:
         if m < 1 or m > MAX_STATIONS:
             raise ValueError(f"Number of unload stations must be between 1 and {MAX_STATIONS}")
         if n < 1 or n > MAX_TRUCKS:
@@ -105,7 +147,18 @@ class Simulator:
 
     def setup(self) -> None:
         self.unload_station = MiningUnloadStation(self.env, self.number_of_unload_stations)
-        self.trucks = [MiningTruck(self.env, f'Truck {i}', self.unload_station, debug=self.debug) for i in range(self.number_of_trucks)]
+        self.trucks = []
+        for i in range(self.number_of_trucks):
+            builder = MiningTruckBuilder(self.env, f'Truck {i}', self.unload_station)
+            truck = (builder
+                     .set_debug(self.debug)
+                     .set_mining_duration_random(1, 5)
+                     .set_mining_duration(1)
+                     .set_travel_duration(30)
+                     .set_unload_duration(5)
+                     .build())
+            logging.debug(truck)
+            self.trucks.append(truck)
 
     def run(self) -> None:
         self.env.run(until=self.simulation_duration)
