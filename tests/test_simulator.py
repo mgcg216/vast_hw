@@ -16,6 +16,10 @@ class TestSimulator(unittest.TestCase):
         expected_data = {'Truck 0': {'total_mining_time': 46, 'total_unload_time': 225}}
         self.assertEqual(simulator.start(), expected_data)
 
+    # Test Setters
+    def test_timeout_setters(self):
+        simulator = Simulator(1, 1, debug=True)
+
     # Test invalid inputs
     def test_negative_trucks(self):
         with self.assertRaises(ValueError):
