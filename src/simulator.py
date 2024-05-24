@@ -28,6 +28,7 @@ class MiningTruck:
 
         self.debug = debug
         self._miningDuration = 1
+        self._miningDurationRange = (1, 5)
         self._travelDuration = 30
         self._unloadDuration = 5
 
@@ -54,9 +55,9 @@ class MiningTruck:
 
     # Getters and Setters
     @property
-    def mining_duration(self, min: int = 1, max: int = 5) -> int:
+    def mining_duration(self) -> int:
         if not self.debug:
-            return random.randint(min, max)
+            return random.randint(*self._miningDurationRange)
         else:
             return self._miningDuration
 
@@ -65,7 +66,18 @@ class MiningTruck:
         if 0 <= value:
             self._miningDuration = value
         else:
-            raise ValueError("Mining Duration must be greater than or equal0")
+            raise ValueError("Mining Duration must be greater than or equal 0")
+
+    @property
+    def mining_duration_range(self):
+        return self._miningDurationRange
+
+    @mining_duration_range.setter
+    def mining_duration_range(self, value):
+        if isinstance(value, tuple) and len(value) == 2 and all(isinstance(i, int) for i in value) and value[0] >= 0 and value[1] >= value[0]:
+            self._miningDurationRange = value
+        else:
+            raise ValueError("Mining Duration Range must be a tuple of two non-negative integers where the second integer is greater than or equal to the first.")
 
     @property
     def travel_duration(self):
@@ -88,7 +100,6 @@ class MiningTruck:
             self._unloadDuration = value
         else:
             raise ValueError("Unload Duration must be greater than or equal 0")
-
 
 class Simulator:
     def __init__(self, m: int, n: int, duration: int = 3 * 24* 60, *, debug: bool = False) -> None:
