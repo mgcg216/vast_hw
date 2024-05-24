@@ -19,6 +19,14 @@ class TestSimulator(unittest.TestCase):
     # Test Setters
     def test_timeout_setters(self):
         simulator = Simulator(1, 1, debug=True)
+        simulator.setup()
+        for truck in simulator.trucks:
+            truck.mining_duration = 0
+            truck.travel_duration = 1
+            truck.unload_duration = 0
+        simulator.run()
+        expected_data = {'Truck 0': {'total_mining_time': 0, 'total_unload_time': 0}}
+        self.assertEqual(simulator.collect_statistics(), expected_data)
 
     # Test invalid inputs
     def test_negative_trucks(self):
