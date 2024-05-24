@@ -4,12 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vast_take_home_challenge_python"
-version = "0.1.0"
+version = "0.1.1"
 description = "Simulation for a lunar Helium-3 space mining operation. This simulation will manage and track the efficiency of mining trucks and unload stations over a continuous 72-hour operation."
 authors = [
     { name = "Gerrard Guerrero", email = "mgcg216@gmail.com" }
 ]
-dependencies = []
+dependencies = [
+    "simpy>=4.0.1",  # Add the SimPy dependency
+    "pytest>=6.2"    # Add Pytest for testing
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
